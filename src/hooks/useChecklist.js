@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react'
 import { DEFAULT_CHECK_ITEMS } from '../data/seedPlants.js'
 
 /**
- * 식물별 주간 점검 체크리스트의 로컬(미저장) 상태를 관리하는 훅.
- * 기본 항목 + 식물별 special_checks 를 합쳐 항목 목록을 구성하고,
- * 각 항목의 체크 여부와 메모를 다룬다. 저장은 상위에서 logCheck 로 처리.
+ * 주간 점검 체크리스트의 로컬(미저장) 상태 훅.
+ * 기본 항목 + 식물별 special_checks 를 합쳐 항목 목록을 만든다.
+ * initial 을 주면(이력 수정 시) 그때의 체크 상태·메모로 초기화한다.
  */
-export function useChecklist(plant) {
+export function useChecklist(plant, initial) {
   const items = useMemo(() => {
     const specials = plant.special_checks ?? []
     return [
@@ -15,8 +15,16 @@ export function useChecklist(plant) {
     ]
   }, [plant.special_checks])
 
-  const [checked, setChecked] = useState({})
-  const [note, setNote] = useState('')
+  // 라벨 기준으로 저장되므로, 수정 시 라벨→key 로 되살린다.
+  const initialChecked = useMemo(() => {
+    if (!initial?.items) return {}
+    const map = {}
+    for (const it of items) map[it.key] = !!initial.items[it.label]
+    return map
+  }, [initial, items])
+
+  const [checked, setChecked] = useState(initialChecked)
+  const [note, setNote] = useState(initial?.note ?? '')
 
   const toggle = (key) => setChecked((c) => ({ ...c, [key]: !c[key] }))
   const reset = () => {

@@ -42,6 +42,14 @@ export default function PlantInfo({ plant }) {
         <Row label="1회 물 양">{plant.water_amount}</Row>
         <Row label="빛 요구량">{plant.light}</Row>
         <Row label="비료">{plant.fertilizer}</Row>
+        <Row label="비료 주기">
+          {plant.intervals?.fertilizer ? `${plant.intervals.fertilizer}일마다` : null}
+        </Row>
+        <Row label="분갈이 주기">
+          {plant.intervals?.repot
+            ? `약 ${Math.round(plant.intervals.repot / 30)}개월마다`
+            : null}
+        </Row>
         <Row label="주의사항">{plant.cautions}</Row>
       </dl>
     </section>

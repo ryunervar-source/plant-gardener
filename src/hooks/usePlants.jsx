@@ -1,26 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { loadState, saveState, emptyState } from '../lib/storage.js'
+import { loadState, saveState, emptyState, normalizePlant, makeId } from '../lib/storage.js'
 import { SEED_PLANTS } from '../data/seedPlants.js'
 
 const PlantsContext = createContext(null)
 
-/** 간단한 고유 id 생성 (crypto.randomUUID 우선) */
-function makeId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
-  return 'p_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
-}
-
-/** 시드 식물에 id/로그 필드를 붙여 완전한 식물 객체로 */
+/** 시드/신규 식물을 완전한 v2 식물 객체로 */
 function hydratePlant(seed) {
-  return {
-    id: makeId(),
-    photo: null,
-    wateringLog: [],
-    fertilizerLog: [],
-    checkLog: [],
-    special_checks: [],
-    ...seed,
-  }
+  return normalizePlant({ id: makeId(), ...seed })
 }
 
 function initState() {
@@ -62,40 +48,68 @@ export function PlantsProvider({ children }) {
         return plant.id
       },
 
+      // 편집 시에도 activities/intervals/logs 구조를 표준화
       editPlant: (id, data) =>
-        updatePlant(id, (p) => ({ ...p, ...data })),
+        updatePlant(id, (p) => normalizePlant({ ...p, ...data })),
 
       deletePlant: (id) =>
         setState((s) => ({ ...s, plants: s.plants.filter((p) => p.id !== id) })),
 
-      // 급수 기록 추가 (기본 오늘)
-      logWatering: (id, when = new Date().toISOString()) =>
-        updatePlant(id, (p) => ({ ...p, wateringLog: [...p.wateringLog, when] })),
+      // --- 활동 기록 (급수/비료/분갈이/기타 공통) ---
+      logActivity: (id, key, entry = {}) =>
+        updatePlant(id, (p) => {
+          const e = {
+            id: makeId(),
+            date: new Date().toISOString(),
+            value: '',
+            ...entry,
+          }
+          const arr = p.logs?.[key] ?? []
+          return { ...p, logs: { ...p.logs, [key]: [...arr, e] } }
+        }),
 
-      // 비료 기록 추가
-      logFertilizer: (id, when = new Date().toISOString()) =>
-        updatePlant(id, (p) => ({ ...p, fertilizerLog: [...p.fertilizerLog, when] })),
-
-      // 급수/비료 기록 개별 삭제 (실수 정정용)
-      removeWatering: (id, when) =>
+      editActivityEntry: (id, key, entryId, patch) =>
         updatePlant(id, (p) => ({
           ...p,
-          wateringLog: p.wateringLog.filter((d) => d !== when),
-        })),
-      removeFertilizer: (id, when) =>
-        updatePlant(id, (p) => ({
-          ...p,
-          fertilizerLog: p.fertilizerLog.filter((d) => d !== when),
+          logs: {
+            ...p.logs,
+            [key]: (p.logs?.[key] ?? []).map((e) =>
+              e.id === entryId ? { ...e, ...patch } : e,
+            ),
+          },
         })),
 
-      // 점검 이력 추가
+      removeActivityEntry: (id, key, entryId) =>
+        updatePlant(id, (p) => ({
+          ...p,
+          logs: {
+            ...p.logs,
+            [key]: (p.logs?.[key] ?? []).filter((e) => e.id !== entryId),
+          },
+        })),
+
+      // --- 점검 이력 ---
       logCheck: (id, entry) =>
         updatePlant(id, (p) => ({
           ...p,
           checkLog: [
-            { date: new Date().toISOString(), items: {}, note: '', ...entry },
+            { id: makeId(), date: new Date().toISOString(), items: {}, note: '', ...entry },
             ...p.checkLog,
           ],
+        })),
+
+      editCheck: (id, entryId, patch) =>
+        updatePlant(id, (p) => ({
+          ...p,
+          checkLog: p.checkLog.map((c) =>
+            c.id === entryId ? { ...c, ...patch } : c,
+          ),
+        })),
+
+      removeCheck: (id, entryId) =>
+        updatePlant(id, (p) => ({
+          ...p,
+          checkLog: p.checkLog.filter((c) => c.id !== entryId),
         })),
 
       // 전체 상태 교체 (백업 가져오기)
