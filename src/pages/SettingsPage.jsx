@@ -34,11 +34,13 @@ export default function SettingsPage() {
     setMessage('데이터를 가져왔어요.')
   }
 
-  const totalEvents = plants.reduce(
-    (n, p) =>
-      n + p.wateringLog.length + p.fertilizerLog.length + (p.checkLog?.length ?? 0),
-    0,
-  )
+  const totalEvents = plants.reduce((n, p) => {
+    const logCount = Object.values(p.logs ?? {}).reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    )
+    return n + logCount + (p.checkLog?.length ?? 0)
+  }, 0)
 
   return (
     <div className="space-y-4">
