@@ -13,6 +13,8 @@ export const SEED_PLANTS = [
     cautions:
       '산성토 필수. 수돗물 석회질에 약함(받아둔 물/빗물 권장). 꽃봉오리 시기 위치 이동 금지. 건조 시 응애',
     special_checks: ['꽃봉오리 상태', '잎 황화(철분 결핍) 여부'],
+    activities: ['water', 'fertilizer', 'repot', 'rotate', 'bloom', 'pest'],
+    intervals: { fertilizer: 14, repot: 365, mist: 2 },
   },
   {
     name: '오렌지 자스민',
@@ -26,6 +28,8 @@ export const SEED_PLANTS = [
     cautions:
       '물 부족 시 잎 처짐, 과습 시 황화 낙엽. 통풍으로 깍지벌레·응애 예방',
     special_checks: ['꽃/향 상태', '깍지벌레 흔적'],
+    activities: ['water', 'fertilizer', 'repot', 'rotate', 'bloom', 'pest'],
+    intervals: { fertilizer: 14, repot: 365 },
   },
   {
     name: '무화과나무',
@@ -38,6 +42,8 @@ export const SEED_PLANTS = [
     fertilizer: '봄~초여름 균형 비료, 열매기 칼륨 위주. 완효성 고형비료 월 1회',
     cautions: '배수 확실히. 겨울 낙엽은 휴면이라 정상. 뿌리 꽉 차면 봄에 분갈이',
     special_checks: ['열매 상태', '뿌리가 배수구로 나왔는지'],
+    activities: ['water', 'fertilizer', 'repot', 'bloom', 'prune'],
+    intervals: { fertilizer: 30, repot: 365 },
   },
   {
     name: '로즈마리',
@@ -51,6 +57,8 @@ export const SEED_PLANTS = [
     cautions:
       '과습이 고사 1순위. 겉흙 완전히 마른 뒤에만 급수. 통풍 필수(흰가루병)',
     special_checks: ['흰가루병 흔적', '줄기 아래쪽 갈변 여부'],
+    activities: ['water', 'fertilizer', 'repot', 'prune', 'harvest', 'pest'],
+    intervals: { fertilizer: 30, repot: 365 },
   },
   {
     name: '몬스테라',
@@ -64,6 +72,8 @@ export const SEED_PLANTS = [
     cautions:
       '과습 시 뿌리 썩음·검은 반점. 주 1회 화분 돌리기. 자라면 이끼봉 지지대',
     special_checks: ['새잎 갈라짐 진행', '잎 기울기(빛 쏠림)', '공중뿌리 상태'],
+    activities: ['water', 'fertilizer', 'repot', 'rotate', 'growth'],
+    intervals: { fertilizer: 14, repot: 365 },
   },
 ]
 

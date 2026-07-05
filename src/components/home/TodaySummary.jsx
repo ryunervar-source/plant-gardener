@@ -1,15 +1,28 @@
 import { Link } from 'react-router-dom'
-import { getWateringStatus, getCheckStatus, getSeason, seasonLabel } from '../../lib/schedule.js'
+import {
+  getWateringStatus,
+  getCheckStatus,
+  getActivityStatus,
+  getSeason,
+  seasonLabel,
+} from '../../lib/schedule.js'
 
 export default function TodaySummary({ plants }) {
   const needWater = plants.filter((p) => {
     const w = getWateringStatus(p)
     return w.neverWatered || w.dday <= 0
   })
+  // 비료: 주기가 있고, 기록이 있으며, 예정일이 지난 식물만 (과잉 알림 방지)
+  const needFert = plants.filter((p) => {
+    if (!(p.activities ?? []).includes('fertilizer')) return false
+    const f = getActivityStatus(p, 'fertilizer')
+    return f.hasSchedule && !f.neverDone && f.dday <= 0
+  })
   const needCheck = plants.filter((p) => getCheckStatus(p).overdue)
 
   const season = seasonLabel(getSeason())
-  const nothing = needWater.length === 0 && needCheck.length === 0
+  const nothing =
+    needWater.length === 0 && needFert.length === 0 && needCheck.length === 0
 
   return (
     <section className="card overflow-hidden">
@@ -31,6 +44,12 @@ export default function TodaySummary({ plants }) {
               label="오늘 물 줄 식물"
               items={needWater}
               tone="water"
+            />
+            <SummaryRow
+              icon="🌾"
+              label="비료 줄 식물"
+              items={needFert}
+              tone="check"
             />
             <SummaryRow
               icon="🔍"

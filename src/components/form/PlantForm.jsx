@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { fileToResizedDataURL } from '../../lib/backup.js'
 import PlantAvatar from '../common/PlantAvatar.jsx'
+import { CORE_ACTIVITY_KEYS, OPTIONAL_ACTIVITIES } from '../../data/activities.js'
 
 const EMPTY = {
   name: '',
@@ -21,11 +22,25 @@ export default function PlantForm({ initial, onSubmit, onCancel, submitLabel = '
   const [specialText, setSpecialText] = useState(
     (initial?.special_checks ?? []).join('\n'),
   )
+  // 비료 주기(일) / 분갈이 주기(개월)
+  const [fertDays, setFertDays] = useState(initial?.intervals?.fertilizer ?? 14)
+  const [repotMonths, setRepotMonths] = useState(
+    Math.round((initial?.intervals?.repot ?? 365) / 30),
+  )
+  // 켜진 선택 활동 키 목록
+  const [extraActs, setExtraActs] = useState(
+    (initial?.activities ?? []).filter((k) => !CORE_ACTIVITY_KEYS.includes(k)),
+  )
   const [error, setError] = useState('')
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
   const setNum = (key) => (e) =>
     setForm((f) => ({ ...f, [key]: Math.max(1, Number(e.target.value) || 1) }))
+
+  const toggleAct = (key) =>
+    setExtraActs((cur) =>
+      cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key],
+    )
 
   const handlePhoto = async (e) => {
     const file = e.target.files?.[0]
@@ -48,7 +63,19 @@ export default function PlantForm({ initial, onSubmit, onCancel, submitLabel = '
       .split('\n')
       .map((s) => s.trim())
       .filter(Boolean)
-    onSubmit({ ...form, name: form.name.trim(), special_checks })
+    const intervals = {
+      ...(form.intervals ?? {}),
+      fertilizer: Math.max(1, Number(fertDays) || 14),
+      repot: Math.max(1, Number(repotMonths) || 12) * 30,
+    }
+    const activities = [...CORE_ACTIVITY_KEYS, ...extraActs]
+    onSubmit({
+      ...form,
+      name: form.name.trim(),
+      special_checks,
+      intervals,
+      activities,
+    })
   }
 
   return (
@@ -105,12 +132,48 @@ export default function PlantForm({ initial, onSubmit, onCancel, submitLabel = '
         <Field label="비료">
           <textarea rows={2} className="field-input resize-none" value={form.fertilizer} onChange={set('fertilizer')} placeholder="관엽용 균형 액비, 봄~여름 2주 1회" />
         </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="비료 주기(일)">
+            <input type="number" min="1" className="field-input" value={fertDays} onChange={(e) => setFertDays(Math.max(1, Number(e.target.value) || 1))} />
+          </Field>
+          <Field label="분갈이 주기(개월)">
+            <input type="number" min="1" className="field-input" value={repotMonths} onChange={(e) => setRepotMonths(Math.max(1, Number(e.target.value) || 1))} />
+          </Field>
+        </div>
+
         <Field label="주의사항">
           <textarea rows={3} className="field-input resize-none" value={form.cautions} onChange={set('cautions')} placeholder="과습 주의 등" />
         </Field>
         <Field label="특이 점검 항목 (한 줄에 하나)">
           <textarea rows={3} className="field-input resize-none" value={specialText} onChange={(e) => setSpecialText(e.target.value)} placeholder={'새잎 갈라짐 진행\n공중뿌리 상태'} />
         </Field>
+
+        <div>
+          <label className="field-label">관리 항목 (기록 버튼으로 추가돼요)</label>
+          <p className="mb-2 text-xs text-sand-400">
+            급수·비료·분갈이는 기본 포함. 필요한 항목을 켜세요.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {OPTIONAL_ACTIVITIES.map((act) => {
+              const on = extraActs.includes(act.key)
+              return (
+                <button
+                  type="button"
+                  key={act.key}
+                  onClick={() => toggleAct(act.key)}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition-colors ${
+                    on
+                      ? 'bg-leaf-600 text-white ring-leaf-600'
+                      : 'bg-white text-leaf-700 ring-sand-300'
+                  }`}
+                >
+                  {act.emoji} {act.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {error && (
