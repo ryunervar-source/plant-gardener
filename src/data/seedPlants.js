@@ -75,6 +75,29 @@ export const SEED_PLANTS = [
     activities: ['water', 'fertilizer', 'repot', 'rotate', 'growth'],
     intervals: { fertilizer: 14, repot: 365 },
   },
+  {
+    name: '바질',
+    latin: 'Ocimum basilicum',
+    pot: '종이컵 (수경재배)',
+    water_summer_days: 3,
+    water_winter_days: 5,
+    water_amount: '컵 2/3 (뿌리 절반~2/3만 잠기게)',
+    light: '하루 4시간 이상 직사광 또는 아주 밝은 창가. 빛 부족 시 웃자람·향 약화',
+    fertilizer:
+      '수경용 액체 양액을 규정의 1/2 농도로, 물 교체 2회당 1회(약 2주 간격). 과비 시 잎만 무성하고 향 저하',
+    cautions:
+      '급수=물 교체를 의미. 뿌리 전체를 물에 담그지 말 것(윗부분은 공기 노출, 잠기면 질식·썩음). 물은 미지근한 실온물로, 여름엔 더 자주 교체(녹조·냄새 방지). 종이컵은 빛을 가려주지만 젖어 무너지기 쉬우니 이중컵 권장. 15°C 이하 냉해(창가 밤 추위 주의). 꽃대가 올라오면 바로 잘라야 잎이 계속 부드러움. 수확은 위쪽 순 위주로(순치기하면 풍성해짐)',
+    special_checks: [
+      '물 탁함·냄새 (즉시 교체)',
+      '뿌리 색 (흰색=건강, 갈색·물컹=썩음)',
+      '수위 (뿌리 1/3은 공기에 노출)',
+      '꽃대 발생 여부 (생기면 제거)',
+      '종이컵 젖음·곰팡이',
+      '진딧물 (새순 뒷면)',
+    ],
+    activities: ['water', 'fertilizer', 'repot', 'prune', 'harvest', 'growth'],
+    intervals: { fertilizer: 14, repot: 60 },
+  },
 ]
 
 // 모든 식물 공통 기본 점검 항목
