@@ -9,14 +9,42 @@ function hydratePlant(seed) {
   return normalizePlant({ id: makeId(), ...seed })
 }
 
+// seededNames 도입(바질 추가) 이전 설치에서 이미 제공됐던 시드 이름들.
+// 이 목록의 식물은 기존 설치에 다시 넣지 않는다(삭제한 식물 부활 방지).
+const LEGACY_SEED_NAMES = ['치자나무', '오렌지 자스민', '무화과나무', '로즈마리', '몬스테라']
+
+/**
+ * 앱 업데이트로 시드 목록에 새 식물이 생기면 기존 사용자에게도 한 번만 추가.
+ * settings.seededNames 에 "이미 제공한 시드"를 기록해 재추가를 막는다.
+ */
+function syncNewSeeds(state) {
+  const offered = state.settings?.seededNames ?? LEGACY_SEED_NAMES
+  const existing = new Set(state.plants.map((p) => p.name))
+  const fresh = SEED_PLANTS.filter(
+    (s) => !offered.includes(s.name) && !existing.has(s.name),
+  )
+  if (fresh.length === 0 && state.settings?.seededNames) return state
+  return {
+    ...state,
+    plants: [...state.plants, ...fresh.map(hydratePlant)],
+    settings: {
+      ...state.settings,
+      seededNames: SEED_PLANTS.map((s) => s.name),
+    },
+  }
+}
+
 function initState() {
   const loaded = loadState()
-  if (loaded) return loaded
+  if (loaded) return syncNewSeeds(loaded)
   // 최초 실행: 시드 데이터로 초기화
   return {
     ...emptyState(),
     plants: SEED_PLANTS.map(hydratePlant),
-    settings: { seededAt: new Date().toISOString() },
+    settings: {
+      seededAt: new Date().toISOString(),
+      seededNames: SEED_PLANTS.map((s) => s.name),
+    },
   }
 }
 
